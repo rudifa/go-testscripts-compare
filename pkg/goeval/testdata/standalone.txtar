@@ -1,0 +1,287 @@
+
+exec cat data/combo.cue
+go mod tidy
+go run main.go
+cmp stderr stderr.txt
+cmp stdout stdout.txt
+
+
+-- go.mod --
+module github.com/rudifa/testscripts-compare
+
+go 1.21
+
+require cuelang.org/go v0.5.0
+-- main.go --
+package main
+
+import (
+
+	"fmt"
+	"os"
+	"bytes"
+	"encoding/json"
+	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/cuecontext"
+
+)
+
+func main() {
+	fmt.Println("Here we go")
+
+	// datastr, _ := ReadString("data/raw.json")
+	// fmt.Println(len(datastr))
+	TestMiniEval3J()
+}
+
+// MiniEval3J compiles a schema and data and returns compact JSON selected by expr
+func MiniEval3J(schema2, data, expr string) (string, error) {
+
+	ctx := cuecontext.New()
+
+	v2 := ctx.CompileString(schema2)
+	if err := v2.Err(); err != nil {
+		return "", err
+	}
+
+	v3 := ctx.CompileString(data, cue.Scope(v2))
+	if err := v3.Err(); err != nil {
+		return "", err
+	}
+
+	res := v2.Unify(v3).LookupPath(cue.ParsePath(expr))
+	if err := res.Err(); err != nil {
+		return "", err
+	}
+
+	bytes, err := res.MarshalJSON()
+	if err != nil {
+		return "", err
+	}
+
+	return string(bytes), nil
+}
+
+func TestMiniEval3J() {
+	schema, _ := ReadString("data/combo.cue")
+	data, _ := ReadString("data/raw.json")
+	expr := "#toApp"
+	res, err := MiniEval3J(schema, data, expr)
+    if err != nil {
+        fmt.Fprintln(os.Stderr, err)
+    }
+	ppres, _ := Prettyfmt(res)
+	fmt.Println(ppres)
+}
+
+func ReadString(filepath string) (string, error) {
+	content, err := os.ReadFile(filepath)
+	if err != nil {
+		return "", err
+	}
+	return string(content), nil
+}
+
+func Prettyfmt(input string) (string, error) {
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, []byte(input), "", "\t"); err != nil {
+		return "", err
+	}
+	return prettyJSON.String(), nil
+}
+-- stdout.txt --
+Here we go
+{
+	"tilesConfig": {
+		"layerName": "Einteilung SWISSIMAGE 10 cm Raster",
+		"2485_1109": {
+			"bbox": [
+				485000,
+				109000,
+				486000,
+				110000
+			],
+			"datenstand": "2020",
+			"resolution": "10"
+		},
+		"2485_1110": {
+			"bbox": [
+				485000,
+				110000,
+				486000,
+				111000
+			],
+			"datenstand": "2020",
+			"resolution": "10"
+		},
+		"2486_1109": {
+			"bbox": [
+				486000,
+				109000,
+				487000,
+				110000
+			],
+			"datenstand": "2020",
+			"resolution": "10"
+		},
+		"2486_1110": {
+			"bbox": [
+				486000,
+				110000,
+				487000,
+				111000
+			],
+			"datenstand": "2020",
+			"resolution": "10"
+		},
+		"layerBodId": "ch.swisstopo.images-swissimage-dop10.metadata",
+		"2486_1111": {
+			"bbox": [
+				486000,
+				111000,
+				487000,
+				112000
+			],
+			"datenstand": "2020",
+			"resolution": "10"
+		}
+	}
+}
+-- stderr.txt --
+-- data/combo.cue --
+// ch.swisstopo.images-swissimage-dop10.metadata
+// @source https://api3.geo.admin.ch/rest/services/all/MapServer/identify?geometry=678250,213000&geometryFormat=geojson&geometryType=esriGeometryPoint&imageDisplay=1391,1070,96&lang=fr&layers=all:ch.swisstopo.images-swissimage-dop10.metadata&mapExtent=312250,-77500,1007750,457500&returnGeometry=true&tolerance=5
+
+package tiles
+
+#CoordBbox: [ number, number, number, number]
+
+#TileId: =~"^\\d{4}_\\d{4}$" // "2675_1211"
+
+#AsOf: =~"^\\d{4}$" // "2021"
+
+#Resolution: =~"^\\d{1,2}$" // "10"
+
+#FeatureAttributes: {
+	datenstand: #AsOf
+	resolution: #Resolution
+	label:	#TileId
+}
+
+#Feature: {
+	featureId:  #TileId // "2675_1211"
+	bbox:	  #CoordBbox // [675000.0, 211000.0, 676000.0, 212000.0]
+	layerBodId: string   // "ch.swisstopo.images-swissimage-dop10.metadata"
+	layerName:  string   // "D\u00e9coupage SWISSIMAGE 10 cm Raster"
+	id:	  featureId  // "2675_1211"
+	attributes: #FeatureAttributes
+}
+
+#FeatureCollection: [...#Feature]
+
+results: #FeatureCollection
+
+#toApp: {
+  tilesConfig: {
+	let firstResult = results[0] // any other result would be fine also
+	layerName: firstResult.layerName
+	layerBodId: firstResult.layerBodId
+	for f in results {
+	  "\(f.featureId)": {
+		bbox:	  f.bbox
+		datenstand: f.attributes.datenstand
+		resolution: f.attributes.resolution
+	  }
+	}
+  }
+}
+-- data/raw.json --
+{
+	"results": [
+		{
+			"attributes": {
+				"datenstand": "2020",
+				"label": "2485_1109",
+				"resolution": "10"
+			},
+			"bbox": [
+				485000,
+				109000,
+				486000,
+				110000
+			],
+			"featureId": "2485_1109",
+			"id": "2485_1109",
+			"layerBodId": "ch.swisstopo.images-swissimage-dop10.metadata",
+			"layerName": "Einteilung SWISSIMAGE 10 cm Raster"
+		},
+		{
+			"attributes": {
+				"datenstand": "2020",
+				"label": "2485_1110",
+				"resolution": "10"
+			},
+			"bbox": [
+				485000,
+				110000,
+				486000,
+				111000
+			],
+			"featureId": "2485_1110",
+			"id": "2485_1110",
+			"layerBodId": "ch.swisstopo.images-swissimage-dop10.metadata",
+			"layerName": "Einteilung SWISSIMAGE 10 cm Raster"
+		},
+		{
+			"attributes": {
+				"datenstand": "2020",
+				"label": "2486_1109",
+				"resolution": "10"
+			},
+			"bbox": [
+				486000,
+				109000,
+				487000,
+				110000
+			],
+			"featureId": "2486_1109",
+			"id": "2486_1109",
+			"layerBodId": "ch.swisstopo.images-swissimage-dop10.metadata",
+			"layerName": "Einteilung SWISSIMAGE 10 cm Raster"
+		},
+		{
+			"attributes": {
+				"datenstand": "2020",
+				"label": "2486_1110",
+				"resolution": "10"
+			},
+			"bbox": [
+				486000,
+				110000,
+				487000,
+				111000
+			],
+			"featureId": "2486_1110",
+			"id": "2486_1110",
+			"layerBodId": "ch.swisstopo.images-swissimage-dop10.metadata",
+			"layerName": "Einteilung SWISSIMAGE 10 cm Raster"
+		},
+		{
+			"attributes": {
+				"datenstand": "2020",
+				"label": "2486_1111",
+				"resolution": "10"
+			},
+			"bbox": [
+				486000,
+				111000,
+				487000,
+				112000
+			],
+			"featureId": "2486_1111",
+			"id": "2486_1111",
+			"layerBodId": "ch.swisstopo.images-swissimage-dop10.metadata",
+			"layerName": "Einteilung SWISSIMAGE 10 cm Raster"
+		}
+	]
+}
