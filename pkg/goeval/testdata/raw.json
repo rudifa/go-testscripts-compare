@@ -1,0 +1,89 @@
+{
+	"results": [
+		{
+			"attributes": {
+				"datenstand": "2020",
+				"label": "2485_1109",
+				"resolution": "10"
+			},
+			"bbox": [
+				485000,
+				109000,
+				486000,
+				110000
+			],
+			"featureId": "2485_1109",
+			"id": "2485_1109",
+			"layerBodId": "ch.swisstopo.images-swissimage-dop10.metadata",
+			"layerName": "Einteilung SWISSIMAGE 10 cm Raster"
+		},
+		{
+			"attributes": {
+				"datenstand": "2020",
+				"label": "2485_1110",
+				"resolution": "10"
+			},
+			"bbox": [
+				485000,
+				110000,
+				486000,
+				111000
+			],
+			"featureId": "2485_1110",
+			"id": "2485_1110",
+			"layerBodId": "ch.swisstopo.images-swissimage-dop10.metadata",
+			"layerName": "Einteilung SWISSIMAGE 10 cm Raster"
+		},
+		{
+			"attributes": {
+				"datenstand": "2020",
+				"label": "2486_1109",
+				"resolution": "10"
+			},
+			"bbox": [
+				486000,
+				109000,
+				487000,
+				110000
+			],
+			"featureId": "2486_1109",
+			"id": "2486_1109",
+			"layerBodId": "ch.swisstopo.images-swissimage-dop10.metadata",
+			"layerName": "Einteilung SWISSIMAGE 10 cm Raster"
+		},
+		{
+			"attributes": {
+				"datenstand": "2020",
+				"label": "2486_1110",
+				"resolution": "10"
+			},
+			"bbox": [
+				486000,
+				110000,
+				487000,
+				111000
+			],
+			"featureId": "2486_1110",
+			"id": "2486_1110",
+			"layerBodId": "ch.swisstopo.images-swissimage-dop10.metadata",
+			"layerName": "Einteilung SWISSIMAGE 10 cm Raster"
+		},
+		{
+			"attributes": {
+				"datenstand": "2020",
+				"label": "2486_1111",
+				"resolution": "10"
+			},
+			"bbox": [
+				486000,
+				111000,
+				487000,
+				112000
+			],
+			"featureId": "2486_1111",
+			"id": "2486_1111",
+			"layerBodId": "ch.swisstopo.images-swissimage-dop10.metadata",
+			"layerName": "Einteilung SWISSIMAGE 10 cm Raster"
+		}
+	]
+}
